@@ -1,0 +1,28 @@
+[package]
+name = "term_utils"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+clap = { version = "4.5.16", features = ["derive"] }
+path-clean = "1.0.1"
+regex = "1.10.6"
+unicode-normalization = "0.1.23"
+walkdir = "2.5.0"
+zip = "2.2.0"
+
+[[bin]]
+name = "grp-dir"
+path = "src/grp-dir.rs"
+
+[[bin]]
+name = "fmt-unicode"
+path = "src/fmt-unicode.rs"
+
+[[bin]]
+name = "fmt-num"
+path = "src/fmt-num.rs"
+
+[[bin]]
+name = "zip-dir"
+path = "src/zip-dir.rs"

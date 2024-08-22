@@ -1,0 +1,27 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+[project]
+name = "term_utils"
+version = "0.0.1"
+authors = [
+  { name="Inwon Kang", email="inwon.kang04@gmail.com" },
+]
+description = "Command line utility"
+readme = "README.md"
+requires-python = ">=3.10"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+
+[project.urls]
+"Homepage" = ""
+"Bug Tracker" = ""
+
+[project.scripts]
+zip-dir = "term_utils:zip_directories"
+clean-unicode = "term_utils:clean_unicode"
+fmt-num = "term_utils:format_numbers"
+grp-dir = "term_utils:group_directories"
