@@ -1,7 +1,7 @@
 UTIL_DIR=$HOME/.term-utils/
 mkdir -p $UTIL_DIR
 
-# cargo build --release
+cargo build --release
 
 for file in target/release/*; do
   if [ -f "$file" ] && [ -x "$file" ]; then

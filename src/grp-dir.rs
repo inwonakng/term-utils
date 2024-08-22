@@ -11,22 +11,25 @@ fn get_groups(pattern: &str, dir: &Path) -> Result<HashMap<String, Vec<String>>,
         let child = child?;
         let path = child.path();
 
-        if let Some(name) = path.file_name() {
-            if let Some(name_str) = name.to_str() {
-                if name_str.starts_with(".") {
-                    continue;
-                }
-                if let Some(captures) = pattern.captures(name_str) {
-                    if let Some(group) = captures.name("group") {
-                        let group_name = group.as_str().to_string();
-                        groups
-                            .entry(group_name)
-                            .or_default()
-                            .push(name_str.to_string());
-                    }
-                }
-            }
+        let name_str = path
+            .file_name()
+            .ok_or("No file name")?
+            .to_str()
+            .ok_or("Failed to convert name to string")?;
+        if name_str.starts_with(".") {
+            continue;
         }
+        let group_name = pattern
+            .captures(name_str)
+            .ok_or("No match")?
+            .name("group")
+            .ok_or("No match for group pattern")?
+            .as_str()
+            .to_string();
+        groups
+            .entry(group_name)
+            .or_default()
+            .push(name_str.to_string());
     }
 
     Ok(groups) // Return the hashmap on success
@@ -44,18 +47,14 @@ fn group_files(dir: &Path, group_name: &str, target: &Vec<String>) -> Result<(),
     if group_dir.exists() {
         return Err(format!("Directory already exists: {:?}", group_dir).into());
     }
-    match fs::create_dir(&group_dir) {
-        Ok(_) => {
-            // now move the files into the directory
-            for name in target {
-                let source_dir = dir.join(name);
-                let target_dir = group_dir.join(name);
-                if let Err(e) = fs::rename(&source_dir, &target_dir) {
-                    return Err(Box::new(e));
-                }
-            }
+    fs::create_dir(&group_dir)?;
+    // now move the files into the directory
+    for name in target {
+        let source_dir = dir.join(name);
+        let target_dir = group_dir.join(name);
+        if let Err(e) = fs::rename(&source_dir, &target_dir) {
+            return Err(Box::new(e));
         }
-        Err(e) => return Err(Box::new(e)),
     }
     Ok(())
 }
@@ -78,16 +77,9 @@ fn main() -> Result<(), Box<dyn Error>> {
     group_pattern.push_str(&args.pattern);
     group_pattern.push_str(").*");
 
-    match get_groups(&group_pattern, &cwd) {
-        Ok(groups) => {
-            for (group_name, names) in groups {
-                group_files(&cwd, &group_name, &names)?;
-            }
-            Ok(())
-        }
-        Err(e) => {
-            println!("Error: {}", e);
-            Err(e)
-        }
+    let groups = get_groups(&group_pattern, &cwd)?;
+    for (group_name, names) in groups {
+        group_files(&cwd, &group_name, &names)?;
     }
+    Ok(())
 }

@@ -24,7 +24,6 @@ fn zip_directory(path: &Path, options: SimpleFileOptions) -> Result<(), Box<dyn 
     let zipfile = File::create(path.with_extension("zip"))?;
     let mut writer = ZipWriter::new(zipfile);
     let mut buf = Vec::new();
-    // let options = SimpleFileOptions::default().compression_method(zip::CompressionMethod::Stored);
 
     for dir in WalkDir::new(path) {
         let dir = dir?;
@@ -57,15 +56,15 @@ fn main() -> Result<(), Box<dyn Error>> {
     for child in children {
         let child = child?;
         let path = child.path();
-        if let Some(name) = path.file_name() {
-            if let Some(name_str) = name.to_str() {
-                if name_str.starts_with(".") || !pattern.is_match(name_str) || !path.is_dir() {
-                    continue;
-                }
-
-                zip_directory(&path, options)?;
-            }
+        let name_str = path
+            .file_name()
+            .ok_or("No file name")?
+            .to_str()
+            .ok_or("Failed to convert name to string")?;
+        if name_str.starts_with(".") || !pattern.is_match(name_str) || !path.is_dir() {
+            continue;
         }
+        zip_directory(&path, options)?;
     }
     Ok(())
 }

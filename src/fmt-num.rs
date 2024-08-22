@@ -16,20 +16,16 @@ fn build_pattern(pattern: &str) -> Result<String, Box<dyn Error>> {
     let re = Regex::new(r"^(.*?)(\\d\+)(.*?)$")?;
 
     // Capture the groups
-    if let Some(captures) = re.captures(pattern) {
-        let part1 = captures.get(1).map_or("", |m| m.as_str());
-        let part2 = captures.get(2).map_or("", |m| m.as_str());
-        let part3 = captures.get(3).map_or("", |m| m.as_str());
+    let captures = re.captures(pattern).ok_or("Error transforming regex")?;
+    let part1 = captures.get(1).map_or("", |m| m.as_str());
+    let part2 = captures.get(2).map_or("", |m| m.as_str());
+    let part3 = captures.get(3).map_or("", |m| m.as_str());
 
-        let formatted = format!("({})(?<num>{})({})", part1, part2, part3)
-            .replace(")()", ")")
-            .replace("()(", "(")
-            .replace("()", "");
-        Ok(formatted)
-    } else {
-        // If the pattern doesn't match, return it unchanged
-        Err("Error transforming regex".into())
-    }
+    let formatted = format!("({})(?<num>{})({})", part1, part2, part3)
+        .replace(")()", ")")
+        .replace("()(", "(")
+        .replace("()", "");
+    Ok(formatted)
 }
 
 // Driver code
@@ -58,37 +54,36 @@ fn main() -> Result<(), Box<dyn Error>> {
     for child in fs::read_dir(cwd.clone())? {
         let child = child?;
         let path = child.path();
-        if let Some(name) = path.file_name() {
-            if let Some(name_str) = name.to_str() {
-                if name_str.starts_with(".") || !pattern.is_match(name_str) {
-                    continue;
-                }
-                let num: &str = &pattern.captures(name_str).unwrap()["num"];
-                children.push(name_str.to_string());
-                max_num_len = max(num.len(), max_num_len);
-            }
+
+        let name_str = path
+            .file_name()
+            .ok_or("No file name")?
+            .to_str()
+            .ok_or("Failed to convert name to string")?;
+        if name_str.starts_with(".") || !pattern.is_match(name_str) {
+            continue;
         }
+        let num: &str = &pattern.captures(name_str).unwrap()["num"];
+        children.push(name_str.to_string());
+        max_num_len = max(num.len(), max_num_len);
     }
 
     for child in children {
-        if let Some(captures) = pattern.captures(&child) {
-            let num: u32 = captures["num"].parse()?;
-            let parsed_name = captures.iter().skip(1).fold(String::new(), |mut acc, c| {
-                if let Some(capt) = c {
-                    if capt.as_str() == num.to_string() {
-                        acc.push_str(&format!("{:0max_num_len$}", num));
-                    } else {
-                        acc.push_str(capt.as_str());
-                    }
-                }
-                acc
-            });
-
-            let source_dir = cwd.join(child);
-            let target_dir = cwd.join(parsed_name.clone());
-            if let Err(e) = fs::rename(&source_dir, &target_dir) {
-                return Err(Box::new(e));
+        let captures = pattern.captures(&child).ok_or("No match")?;
+        let num: u32 = captures["num"].parse()?;
+        let mut parsed_name = String::new();
+        for c in captures.iter().skip(1) {
+            let capt = c.ok_or("No captuer")?;
+            if capt.as_str() == num.to_string() {
+                parsed_name.push_str(&format!("{:0max_num_len$}", num));
+            } else {
+                parsed_name.push_str(capt.as_str());
             }
+        }
+        let source_dir = cwd.join(child);
+        let target_dir = cwd.join(parsed_name.clone());
+        if let Err(e) = fs::rename(&source_dir, &target_dir) {
+            return Err(Box::new(e));
         }
     }
     Ok(())
