@@ -73,7 +73,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         let num: u32 = captures["num"].parse()?;
         let mut parsed_name = String::new();
         for c in captures.iter().skip(1) {
-            let capt = c.ok_or("No captuer")?;
+            let capt = c.ok_or("No capture")?;
             if capt.as_str() == num.to_string() {
                 parsed_name.push_str(&format!("{:0max_num_len$}", num));
             } else {

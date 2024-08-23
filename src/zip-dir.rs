@@ -10,16 +10,6 @@ use std::{
 use walkdir::WalkDir;
 use zip::{write::SimpleFileOptions, ZipWriter};
 
-// Driver code
-
-#[derive(Parser, Debug)]
-#[command(version, about, long_about = None)]
-struct Args {
-    /// String pattern to build groups by
-    #[arg(short, long, default_value = ".*")]
-    pattern: String,
-}
-
 fn zip_directory(path: &Path, options: SimpleFileOptions) -> Result<(), Box<dyn Error>> {
     let zipfile = File::create(path.with_extension("zip"))?;
     let mut writer = ZipWriter::new(zipfile);
@@ -42,6 +32,16 @@ fn zip_directory(path: &Path, options: SimpleFileOptions) -> Result<(), Box<dyn 
     }
     writer.finish()?;
     Ok(())
+}
+
+// Driver code
+
+#[derive(Parser, Debug)]
+#[command(version, about, long_about = None)]
+struct Args {
+    /// String pattern to build groups by
+    #[arg(short, long, default_value = ".*")]
+    pattern: String,
 }
 
 fn main() -> Result<(), Box<dyn Error>> {

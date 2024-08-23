@@ -6,7 +6,7 @@ Simple terminal utilities I got tired of scripting.
 
 ### Building from source:
 
-Mac/Linux:
+Mac/Linux (need `Cargo`):
 
 ```bash
 git clone https://github.com/inwonakng/term-utils ~/Downloads/term-utils
@@ -19,25 +19,52 @@ This creates `~/.term-utils` and adds it to your PATH.
 
 ### Zip current directory contents separately
 
-`zip-dir`
+`zip-dir -p <PATTERN>`
+
+Where the optional `PATTERN` should be a filter to pick which directories to zip. Default is `.*`.
+Only zips directories and skips loose files.
 
 ### Correctly pad numerical directory names
 
-`fmt-num <PATTERN>`
+`fmt-num <PATTERN> -z <NUM>`
 
-Where pattern should include one `\d+` for the number in target.
+Where pattern should include one `\d+` for the number in target. The optional argument `NUM` will be the number of digits to pad to. If any number is already longer than `NUM`, it will override `NUM`.
+
+For example, if you have directories named:
+
+```
+test-1
+test-2
+test-100
+```
+
+Running `fmt-num "test-\d+"` will rename them to:
+
+```
+test-001
+test-002
+test-100
+```
+
+While running `fmt-num "test-\d+" -z 5` will rename them to:
+
+```
+test-00001
+test-00002
+test-00100
+```
 
 ### Fix unicode filenames
 
 `fmt-unicode`
 
-Most likely not a problem, but mac makes korean weird. Run this to fix them all to NFC format.
+Most likely not a problem, but mac makes Korean weird. Run this to fix them all to NFC format.
 
 ### Group directories
 
 `grp-dir <PATTERN>`
 
-Where pattern is a regex pattern for deciding the groups.
+Where `PATTERN` is a regex pattern for deciding the groups.
 
 For example, if you have directories named:
 
